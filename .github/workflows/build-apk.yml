@@ -20,9 +20,12 @@ jobs:
 
       - name: Verificar y extraer proyecto
         shell: bash
-        run: | set -euo pipefail ZIP="Matibatidos_POS_Proyecto_Definitivo_Independiente.zip" 
+        run: |
+          set -euo pipefail
+          ZIP="Matibatidos_POS_Proyecto_Definitivo_Independiente.zip"
+
           if [ ! -f "$ZIP" ]; then
-            echo "::error::No se encontró $ZIP en la raíz del repositorio."
+            echo "::error::No se encontró el archivo ZIP en la raíz del repositorio."
             exit 1
           fi
 
@@ -30,8 +33,7 @@ jobs:
           unzip -q "$ZIP" -d build-project
 
           if [ ! -f "build-project/MatibatidosAPK/settings.gradle" ] || [ ! -f "build-project/MatibatidosAPK/app/build.gradle" ]; then
-            echo "::error::El ZIP no contiene la estructura Android esperada."
-            find build-project -maxdepth 4 -type f | sort | head -200
+            echo "::error::La estructura del proyecto Android no es correcta."
             exit 1
           fi
 
@@ -46,13 +48,18 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Compilar APK independiente
+      - name: Compilar APK definitiva
         working-directory: build-project/MatibatidosAPK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Verificar APK generada
         shell: bash
-        run: | set -euo pipefail APK="build-project/MatibatidosAPK/app/build/outputs/apk/debug/app-debug.apk" test -s "$APK" ls -lh "$APK" 
+        run: |
+          set -euo pipefail
+          APK="build-project/MatibatidosAPK/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+
       - name: Publicar APK para descargar
         uses: actions/upload-artifact@v4
         with:
